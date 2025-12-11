@@ -25,19 +25,16 @@ public class HandAnimator : MonoBehaviour
     [SerializeField] private AudioClip _wooshClip;
     [SerializeField] private AudioClip _coinClip;
 
-    [SerializeField] private RectTransform _comboPanel;
-    [SerializeField] private CanvasGroup _comboGroup;
-    [SerializeField] private TextMeshProUGUI _comboText;
+    [SerializeField] private ComboView _comboView;
 
-    [SerializeField] private TextMeshProUGUI _scoreText; // или UnityEngine.UI.Text
+    [SerializeField] private ScoreView _scoreView;
     [SerializeField] private RectTransform _scoreTextRect;
     private int _currentScore;
 
     [SerializeField] private GameObject _scorePopupPrefab;
 
-    [SerializeField] private RectTransform _finalScoreRect;
-    [SerializeField] private CanvasGroup _finalScoreGroup;
-    [SerializeField] private TextMeshProUGUI _finalScoreText;
+    [SerializeField] private FinalScoreView _finalScoreView;
+    private int _lastHandScore;
 
     [SerializeField] private RectTransform _scoreTracerRect;
     [SerializeField] private CanvasGroup _scoreTracerGroup;
@@ -47,7 +44,6 @@ public class HandAnimator : MonoBehaviour
 
     private bool _isButtonAnimating;
     private bool _isSequenceRunning;
-
 
     void Awake()
     {
@@ -65,13 +61,7 @@ public class HandAnimator : MonoBehaviour
         }
 
         _currentScore = 0;
-        UpdateScoreText();
-    }
-
-    private void UpdateScoreText()
-    {
-        if (_scoreText != null)
-            _scoreText.text = $"Score: {_currentScore}";
+        _scoreView.SetInstant(_currentScore);
     }
 
     private void OnDestroy()
@@ -92,41 +82,6 @@ public class HandAnimator : MonoBehaviour
         }
 
         StartCoroutine(PlaySequence());
-    }
-
-
-    private IEnumerator ShowComboLabel(string label, float moveOffset, float duration)
-    {
-        if (_comboPanel == null || _comboGroup == null || _comboText == null)
-            yield break;
-
-        // Текст комбинации
-        _comboText.text = label;
-
-        // Исходная позиция панели
-        Vector2 targetPos = _comboPanel.anchoredPosition;
-        // Стартуем чуть ниже
-        Vector2 startPos = targetPos + Vector2.down * moveOffset;
-
-        _comboPanel.anchoredPosition = startPos;
-        _comboGroup.alpha = 0f;
-
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
-
-            // Плавное движение снизу вверх
-            _comboPanel.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
-            // Плавное появление (0 → 1)
-            _comboGroup.alpha = Mathf.Lerp(0f, 1f, t);
-
-            yield return null; // ждём следующий кадр
-        }
-
-        _comboPanel.anchoredPosition = targetPos;
-        _comboGroup.alpha = 1f;
     }
 
     private IEnumerator PlaySequence()
@@ -151,11 +106,10 @@ public class HandAnimator : MonoBehaviour
         yield return StartCoroutine(MoveAllCardsToCenter(0.3f));
         //yield return StartCoroutine(BounceCardsOnce());
 
-        yield return StartCoroutine(ShowComboLabel("PAIR", 30f, 0.25f));
+        StartCoroutine(_comboView.Show("FLUSH", 0.2f, 2f));
         yield return StartCoroutine(ScoreCardsSequence());
 
         yield return StartCoroutine(MoveAllCardsToStart(0.3f));
-        _comboGroup.alpha = 0f;
         StartCoroutine(ZoomTableRoot(1f, _zoomDuration));
         // 4. Плавно возвращаем яркость
         yield return StartCoroutine(_overlay.FadeOut(0.2f));
@@ -208,52 +162,6 @@ public class HandAnimator : MonoBehaviour
         _scoreTracerGroup.alpha = 0f;
     }
 
-    private IEnumerator ShowFinalScorePopup(int addedScore, float duration)
-    {
-        if (_finalScoreRect == null || _finalScoreGroup == null || _finalScoreText == null)
-            yield break;
-
-        // Текст: сколько добавили за эту комбинацию
-        _finalScoreText.text = $"+{addedScore}";
-
-        Vector3 baseScale = Vector3.one;
-        Vector3 bigScale = baseScale * 1.2f;
-
-        _finalScoreRect.localScale = Vector3.zero;
-        _finalScoreGroup.alpha = 0f;
-
-        float half = duration * 0.5f;
-        float t = 0f;
-
-        // Фаза 1: появление и увеличение (0 → 1.2 scale, 0 → 1 alpha)
-        while (t < 1f)
-        {
-            t += Time.deltaTime / half;
-            t = Mathf.Clamp01(t);
-
-            _finalScoreRect.localScale = Vector3.Lerp(Vector3.zero, bigScale, t);
-            _finalScoreGroup.alpha = t;
-
-            yield return null;
-        }
-
-        // Фаза 2: лёгкое схлопывание к нормальному скейлу и затухание
-        t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / half;
-            t = Mathf.Clamp01(t);
-
-            _finalScoreRect.localScale = Vector3.Lerp(bigScale, baseScale, t);
-            _finalScoreGroup.alpha = 1f - t;
-
-            yield return null;
-        }
-
-        _finalScoreRect.localScale = baseScale;
-        _finalScoreGroup.alpha = 0f;
-    }
-
     private IEnumerator ScoreCardsSequence()
     {
         int[] cardScores = { 10, 15, 20, 15, 15 };
@@ -281,33 +189,14 @@ public class HandAnimator : MonoBehaviour
             StartCoroutine(card.PlayScoreAnimation(add, cardJumpHeight, cardAnimDuration));
             StartCoroutine(PlayScoreTracer(card.Rect, 0.25f));
 
-            yield return StartCoroutine(AnimateScore(startScore, endScore, scoreAnimDuration));
+            yield return StartCoroutine(_scoreView.AnimateScore(startScore, endScore, scoreAnimDuration));
+            _currentScore = endScore;
 
             yield return new WaitForSeconds(delayBetweenCards);
         }
 
-        yield return StartCoroutine(ShowFinalScorePopup(totalHandScore, 0.6f));
-    }
-
-    private IEnumerator AnimateScore(int from, int to, float duration)
-    {
-        float t = 0f;
-
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
-
-            // Линейная интерполяция по float, затем округляем
-            float value = Mathf.Lerp(from, to, t);
-            _currentScore = Mathf.RoundToInt(value);
-            UpdateScoreText();
-
-            yield return null;
-        }
-
-        _currentScore = to;
-        UpdateScoreText();
+        _lastHandScore = totalHandScore;
+        yield return StartCoroutine(_finalScoreView.Show(_lastHandScore, 0.6f, 0.2f));
     }
 
     private IEnumerator MoveAllCardsToStart(float duration)
