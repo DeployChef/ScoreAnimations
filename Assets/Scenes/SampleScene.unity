@@ -399,15 +399,11 @@ MonoBehaviour:
   _clickClip: {fileID: 8300000, guid: 9dd41fb1664edbf44943e4abdd01e0b0, type: 3}
   _wooshClip: {fileID: 8300000, guid: 766862d09ab92b84ba6fd64ba554360a, type: 3}
   _coinClip: {fileID: 8300000, guid: d1ae8ca0b25689641a5b3463a27b775c, type: 3}
-  _comboPanel: {fileID: 199064010}
-  _comboGroup: {fileID: 199064007}
-  _comboText: {fileID: 1744836553}
-  _scoreText: {fileID: 1370099999}
+  _comboView: {fileID: 1744836556}
+  _scoreView: {fileID: 1370100001}
   _scoreTextRect: {fileID: 1370099998}
   _scorePopupPrefab: {fileID: 3354433565785329870, guid: f9619fdfd5bbbf54da465d3982e97a39, type: 3}
-  _finalScoreRect: {fileID: 907083461}
-  _finalScoreGroup: {fileID: 907083462}
-  _finalScoreText: {fileID: 907083463}
+  _finalScoreView: {fileID: 907083465}
   _scoreTracerRect: {fileID: 442648446}
   _scoreTracerGroup: {fileID: 442648443}
 --- !u!4 &86476573
@@ -1305,6 +1301,7 @@ GameObject:
   - component: {fileID: 907083464}
   - component: {fileID: 907083463}
   - component: {fileID: 907083462}
+  - component: {fileID: 907083465}
   m_Layer: 5
   m_Name: FinalScore
   m_TagString: Untagged
@@ -1442,6 +1439,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 907083460}
   m_CullTransparentMesh: 1
+--- !u!114 &907083465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 907083460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdc500d7e95fd7545871327fa8721a1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
+  _group: {fileID: 907083462}
+  _scoreText: {fileID: 907083463}
 --- !u!1 &966508680
 GameObject:
   m_ObjectHideFlags: 0
@@ -1728,6 +1739,7 @@ GameObject:
   - component: {fileID: 1370099998}
   - component: {fileID: 1370100000}
   - component: {fileID: 1370099999}
+  - component: {fileID: 1370100001}
   m_Layer: 5
   m_Name: Score
   m_TagString: Untagged
@@ -1853,6 +1865,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1370099997}
   m_CullTransparentMesh: 1
+--- !u!114 &1370100001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370099997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c46bacdfb0e08c4e96ed2582ceffd30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreView
+  _scoreText: {fileID: 1370099999}
 --- !u!1 &1395865073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1955,6 +1980,7 @@ GameObject:
   - component: {fileID: 1744836555}
   - component: {fileID: 1744836554}
   - component: {fileID: 1744836553}
+  - component: {fileID: 1744836556}
   m_Layer: 5
   m_Name: ComboText
   m_TagString: Untagged
@@ -2082,6 +2108,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1744836556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744836552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27ccd8d62281b6f4b864f372213b1386, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComboView
+  _group: {fileID: 199064007}
+  _comboText: {fileID: 1744836553}
 --- !u!1 &1788180711
 GameObject:
   m_ObjectHideFlags: 0
