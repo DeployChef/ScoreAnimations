@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -201,6 +202,8 @@ public class HandAnimator : MonoBehaviour
 
     private IEnumerator MoveAllCardsToStart(float duration)
     {
+        Sequence seq = DOTween.Sequence();
+
         for (int i = 0; i < _cards.Length; i++)
         {
             CardView card = _cards[i];
@@ -208,29 +211,14 @@ public class HandAnimator : MonoBehaviour
 
             RectTransform rect = card.Rect;
 
-            Vector2 startPos = rect.anchoredPosition;
             Vector2 endPos = _cardStartPositions[i];
-
-            float startZ = rect.localEulerAngles.z;
             float endZ = _cardStartRotations[i];
 
-            float t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime / duration;
-                t = Mathf.Clamp01(t);
-
-                rect.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
-
-                float z = Mathf.Lerp(startZ, endZ, t);
-                rect.localEulerAngles = new Vector3(0f, 0f, z);
-
-                yield return null;
-            }
-
-            rect.anchoredPosition = endPos;
-            rect.localEulerAngles = new Vector3(0f, 0f, endZ);
+            seq.Join(rect.DOAnchorPos(endPos, duration).SetEase(Ease.InOutQuad));
+            seq.Join(rect.DOLocalRotate(new Vector3(0f, 0f, endZ), duration));
         }
+
+        yield return seq.WaitForCompletion();
     }
 
     private IEnumerator MoveAllCardsToCenter(float moveDuration)
@@ -267,21 +255,9 @@ public class HandAnimator : MonoBehaviour
         if (_tableRoot == null)
             yield break;
 
-        Vector3 startScale = _tableRoot.localScale;
-        Vector3 endScale = Vector3.one * targetScale;
-
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
-
-            _tableRoot.localScale = Vector3.Lerp(startScale, endScale, t);
-
-            yield return null;
-        }
-
-        _tableRoot.localScale = endScale;
+        yield return _tableRoot.DOScale(Vector3.one * targetScale, duration)
+            .SetEase(Ease.InOutQuad)
+            .WaitForCompletion();
     }
 
     private IEnumerator AnimatePlayButtonScale()
@@ -295,31 +271,11 @@ public class HandAnimator : MonoBehaviour
         Vector3 pressedScale = normalScale * 0.95f;
         float duration = 0.05f;
 
-        // 1. Из normal → pressed
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
+        Sequence seq = DOTween.Sequence();
+        seq.Append(_playButtonRect.DOScale(pressedScale, duration).SetEase(Ease.OutQuad));
+        seq.Append(_playButtonRect.DOScale(normalScale, duration).SetEase(Ease.InQuad));
 
-            _playButtonRect.localScale = Vector3.Lerp(normalScale, pressedScale, t);
-
-            yield return null; // ждём следующий кадр
-        }
-
-        // 2. Из pressed → normal
-        t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
-
-            _playButtonRect.localScale = Vector3.Lerp(pressedScale, normalScale, t);
-
-            yield return null;
-        }
-
-        _playButtonRect.localScale = normalScale;
+        yield return seq.WaitForCompletion();
         _isButtonAnimating = false;
     }
 }

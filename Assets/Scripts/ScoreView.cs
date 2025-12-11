@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -24,17 +25,22 @@ public class ScoreView : MonoBehaviour
         if (_scoreText == null)
             yield break;
 
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            t = Mathf.Clamp01(t);
+        int current = from;
 
-            int current = Mathf.RoundToInt(Mathf.Lerp(from, to, t));
-            _scoreText.text = current.ToString();
+        // создаём tween, который меняет current от from до to
+        Tween tween = DOTween.To(
+            () => current,
+            x =>
+            {
+                current = x;
+                _scoreText.text = current.ToString();
+            },
+            to,
+            duration
+        ).SetEase(Ease.OutQuad);
 
-            yield return null;
-        }
+        // ждём завершения твина внутри корутины
+        yield return tween.WaitForCompletion();
 
         _scoreText.text = to.ToString();
     }
